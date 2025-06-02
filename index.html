@@ -1,71 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Public Waste Bins in Central London</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Central London Waste Bins Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    integrity="sha512-sA+9H+v1DY+e06QzWwPqP92AQzCj/LPwQgZTUlz3ztxCHb+0ASzHzm0y4jZk4q8PHcH+ZVo5R+RQk2Y9Fu0qA=="
-    crossorigin=""
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
   />
-  
+
   <style>
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-    }
-    #map {
-      width: 100vw;
-      height: 100vh;
-    }
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { width: 100%; height: 100vh; }
   </style>
 </head>
 <body>
+  <div id="map"></div>
 
-<div id="map"></div>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Leaflet JS -->
-<script
-  src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-  integrity="sha512-a8xAbtJ5RUn7JwHvh1R5nD6TBoHvzJ2UgA2b4W1c4L34pxdj5jDRn59z0qz1cf4+W6aYz0R0AcH/k9Qp9vALXA=="
-  crossorigin=""
-></script>
+  <script>
+    // Initialize the map centered on London
+    const map = L.map('map').setView([51.5074, -0.1278], 13);
 
-<script>
-  // Initialize map centered on Central London
-  const map = L.map('map').setView([51.509865, -0.118092], 12);
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-  // Add OpenStreetMap tiles
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // Load GeoJSON and add to map
-  fetch('bins.geojson')
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to load bins.geojson');
-      return response.json();
-    })
-    .then(data => {
-      L.geoJSON(data, {
-        pointToLayer: (feature, latlng) => L.marker(latlng),
-        onEachFeature: (feature, layer) => {
-          const props = feature.properties || {};
-          const description = props.description || 'No description';
-          const borough = props.borough || 'Unknown borough';
-          layer.bindPopup(`<strong>${description}</strong><br/>Borough: ${borough}`);
-        }
-      }).addTo(map);
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Error loading waste points data.');
-    });
-</script>
-
+    // Load your GeoJSON file
+    fetch('bins.geojson')
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          onEachFeature: function (feature, layer) {
+            // If the feature has properties, show a popup with info
+            if (feature.properties && feature.properties.type) {
+              layer.bindPopup(`<strong>Bin Type:</strong> ${feature.properties.type}`);
+            }
+          },
+          pointToLayer: function (feature, latlng) {
+            // Customize markers if you want, e.g. different colors based on type
+            return L.circleMarker(latlng, {
+              radius: 6,
+              fillColor: '#3388ff',
+              color: '#000',
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.8
+            });
+          }
+        }).addTo(map);
+      })
+      .catch(err => console.error('Failed to load GeoJSON:', err));
+  </script>
 </body>
 </html>

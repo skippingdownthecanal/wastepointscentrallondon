@@ -1,26 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Public Waste Points in Central London</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <meta charset="UTF-8">
+  <title>Public Waste Bins in Central London</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha512-sA+9H+v1DY+e06QzWwPqP92AQzCj/LPwQgZTUlz3ztxCHb+0ASzHzm0y4jZk4q8PHcH+ZVo5R+RQk2Y9Fu0qA=="
+    crossorigin=""
+  />
+  
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { height: 100vh; width: 100vw; }
+  </style>
 </head>
 <body>
-  <div id="map" style="height: 100vh;"></div>
-  <script>
-    var map = L.map('map').setView([51.5074, -0.1278], 13); // Coordinates for Central London
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+<div id="map"></div>
 
-    var wastePoints = [
-      { lat: 51.5074, lng: -0.1278, name: "Recycling Bin A" },
-      { lat: 51.5084, lng: -0.1288, name: "General Waste Bin B" }
-    ];
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+  integrity="sha512-a8xAbtJ5RUn7JwHvh1R5nD6TBoHvzJ2UgA2b4W1c4L34pxdj5jDRn59z0qz1cf4+W6aYz0R0AcH/k9Qp9vALXA=="
+  crossorigin="">
+</script>
 
-    wastePoints.forEach(function(point) {
-      L.marker([point.lat, point.lng]).addTo(map)
-        .bindPopup(point.name);
-    });
-  </script>
+<script>
+  // Initialize map
+  const map = L.map('map').setView([51.509865, -0.118092], 13); // Central London
+
+  // Add OpenStreetMap base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Load and display GeoJSON file
+  fetch('bins.geojson') // this file must be in the same GitHub repo
+    .then(response => response.json())
+    .then(data => {
+      L.geoJSON(data, {
+        onEachFeature: function (feature, layer) {
+          if (feature.properties && feature.properties.description) {
+            layer.bindPopup(feature.properties.description);
+          }
+        },
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng);
+        }
+      }).addTo(map);
+    })
+    .catch(error => console.error('Error loading GeoJSON:', error));
+</script>
+
 </body>
 </html>
+

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Public Waste Bins in Central London</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet CSS -->
   <link
@@ -14,8 +14,13 @@
   />
   
   <style>
-    body { margin: 0; padding: 0; }
-    #map { height: 100vh; width: 100vw; }
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+    }
+    #map {
+      width: 100vw;
+      height: 100vh;
+    }
   </style>
 </head>
 <body>
@@ -26,37 +31,41 @@
 <script
   src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
   integrity="sha512-a8xAbtJ5RUn7JwHvh1R5nD6TBoHvzJ2UgA2b4W1c4L34pxdj5jDRn59z0qz1cf4+W6aYz0R0AcH/k9Qp9vALXA=="
-  crossorigin="">
-</script>
+  crossorigin=""
+></script>
 
 <script>
-  // Initialize map
-  const map = L.map('map').setView([51.509865, -0.118092], 13); // Central London
+  // Initialize map centered on Central London
+  const map = L.map('map').setView([51.509865, -0.118092], 12);
 
-  // Add OpenStreetMap base layer
+  // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Load and display GeoJSON file
-  fetch('bins.geojson') // this file must be in the same GitHub repo
-    .then(response => response.json())
+  // Load GeoJSON and add to map
+  fetch('bins.geojson')
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to load bins.geojson');
+      return response.json();
+    })
     .then(data => {
       L.geoJSON(data, {
-        onEachFeature: function (feature, layer) {
-          if (feature.properties && feature.properties.description) {
-            layer.bindPopup(feature.properties.description);
-          }
-        },
-        pointToLayer: function (feature, latlng) {
-          return L.marker(latlng);
+        pointToLayer: (feature, latlng) => L.marker(latlng),
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties || {};
+          const description = props.description || 'No description';
+          const borough = props.borough || 'Unknown borough';
+          layer.bindPopup(`<strong>${description}</strong><br/>Borough: ${borough}`);
         }
       }).addTo(map);
     })
-    .catch(error => console.error('Error loading GeoJSON:', error));
+    .catch(err => {
+      console.error(err);
+      alert('Error loading waste points data.');
+    });
 </script>
 
 </body>
 </html>
-

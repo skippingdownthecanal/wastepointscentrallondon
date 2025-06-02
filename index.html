@@ -37,13 +37,15 @@
       .then(data => {
         L.geoJSON(data, {
           onEachFeature: function (feature, layer) {
-            // If the feature has properties, show a popup with info
-            if (feature.properties && feature.properties.type) {
-              layer.bindPopup(`<strong>Bin Type:</strong> ${feature.properties.type}`);
+            if (feature.properties) {
+              const amenity = feature.properties.amenity || 'No amenity info';
+              const operator = feature.properties.operator || 'No operator info';
+              layer.bindPopup(
+                `<strong>Amenity:</strong> ${amenity}<br/><strong>Operator:</strong> ${operator}`
+              );
             }
           },
           pointToLayer: function (feature, latlng) {
-            // Customize markers if you want, e.g. different colors based on type
             return L.circleMarker(latlng, {
               radius: 6,
               fillColor: '#3388ff',
@@ -59,3 +61,4 @@
   </script>
 </body>
 </html>
+
